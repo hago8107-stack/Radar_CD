@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Radar ultrasónico | Arduino + Tinkercad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #0f1720;
+      --card: #182430;
+      --ink: #edf1f4;
+      --muted: #8b98a5;
+      --line: #26343f;
+      --teal: #0b6e7a;
+      --teal-dark: #07545e;
+      --green: #00ff66;
+      --radar-black: #000000;
+      --radar-grid: #185c37;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+    h1, h2, h3, button, .eyebrow, .tag, .stat-label, .serial-label {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .page { width: min(100% - 96px, 1200px); margin: 0 auto; padding: 52px 0 72px; }
+    .page > header, .page > section, .page > footer { width: 100%; max-width: 960px; margin-left: auto; margin-right: auto; }
+    .page > #como-funciona { max-width: 1200px; }
+    #como-funciona > :not(.how-grid) { max-width: 960px; margin-left: auto; margin-right: auto; }
+    .page > .radar-section { max-width: 1100px; }
+    .eyebrow { color: var(--teal); font-size: .76rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    header { border-bottom: 1px solid var(--line); padding-bottom: 38px; }
+    h1 { font-size: clamp(2.3rem, 8vw, 4.7rem); letter-spacing: -.055em; line-height: .98; margin: 14px 0 20px; max-width: 960px; }
+    .dek { color: var(--muted); font-size: clamp(1rem, 2.5vw, 1.2rem); margin: 0; max-width: 960px; }
+    section { margin-top: 58px; }
+    h2 { font-size: clamp(1.65rem, 4vw, 2.25rem); letter-spacing: -.04em; line-height: 1.1; margin: 0 0 18px; }
+    h3 { font-size: 1.05rem; margin: 0 0 8px; }
+    .section-intro { color: var(--muted); margin: 0 0 24px; max-width: 960px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+    .how-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .circuit-gallery { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .circuit-photo { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .circuit-photo img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: contain; background: #f4f5f7; }
+    .circuit-photo figcaption { padding: 16px; color: var(--muted); font-size: .85rem; }
+    .circuit-link { grid-column: 1 / -1; margin: 0; }
+    .circuit-link a { color: var(--teal); font-weight: 600; text-underline-offset: 4px; }
+    .wiring { display: grid; gap: 12px; margin-top: 20px; }
+    .wire { align-items: center; display: flex; gap: 12px; }
+    .pin { background: #e8f2f3; border: 1px solid #c7dfe2; border-radius: 7px; color: var(--teal-dark); font-family: 'Space Grotesk'; font-size: .82rem; font-weight: 700; min-width: 72px; padding: 5px 8px; text-align: center; }
+    .wire-line { background: var(--teal); height: 2px; width: 24px; }
+    .wire span:last-child { color: var(--muted); font-size: .89rem; }
+    .component-roles { border-top: 1px solid var(--line); display: grid; gap: 14px; margin-top: 24px; padding-top: 20px; }
+    .component-role strong { display: block; font-family: 'Space Grotesk'; font-size: .92rem; margin-bottom: 2px; }
+    .component-role p { color: var(--muted); font-size: .86rem; margin: 0; }
+    .sweep-diagram { align-items: center; display: flex; flex-direction: column; justify-content: center; min-height: 235px; }
+    .sweep-svg { height: auto; max-width: 250px; width: 100%; }
+    .diagram-caption { color: var(--muted); font-size: .82rem; margin: 6px 0 0; text-align: center; }
+    .metrics { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); margin-top: 16px; }
+    .metric { border-top: 2px solid var(--teal); padding-top: 10px; }
+    .metric strong { display: block; font-family: 'Space Grotesk'; font-size: 1.3rem; }
+    .metric span { color: var(--muted); font-size: .75rem; }
+    .code-card { background: #ffffff; border: 1px solid var(--line); overflow: auto; padding: 0; }
+    .code-top { align-items: center; border-bottom: 1px solid var(--line); color: var(--muted); display: flex; font-family: 'Space Grotesk'; font-size: .75rem; justify-content: space-between; padding: 12px 18px; }
+    pre { color: #17242b; font: .82rem/1.65 Consolas, 'Courier New', monospace; margin: 0; min-width: 680px; padding: 20px; }
+    .kw { color: #7950a0; } .type { color: #975400; } .num { color: #216b43; } .fn { color: #086a80; } .comment { color: #795838; }
+    .radar-section { overflow: hidden; border-radius: 14px; }
+    .radar-wrap { background: var(--radar-black); color: var(--green); padding: 30px 32px 26px; }
+    .radar-heading { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 18px; }
+    .radar-heading h2 { color: #effff4; margin: 0; }
+    .status { align-items: center; color: var(--green); display: flex; font-family: 'Space Grotesk'; font-size: .72rem; gap: 7px; text-transform: uppercase; }
+    .status-dot { background: var(--green); border-radius: 50%; height: 8px; width: 8px; }
+    .canvas-box { margin: 0 auto; max-width: 1000px; position: relative; width: 100%; }
+    canvas { display: block; height: auto; width: 100%; }
+    .radar-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    button { background: var(--teal); border: 1px solid var(--teal); border-radius: 7px; color: white; cursor: pointer; font-size: .85rem; font-weight: 700; padding: 11px 15px; transition: background .2s, border-color .2s; }
+    button:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
+    button.secondary { background: transparent; border-color: #4a6558; color: var(--green); }
+    button.secondary:hover { background: #123222; }
+    button:disabled { cursor: wait; opacity: .55; }
+    .serial-label { color: #9eb5a8; font-size: .75rem; margin-left: auto; }
+    .readout { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-top: 20px; }
+    .readout-box { border: 1px solid #24553a; padding: 13px 15px; }
+    .readout-box strong { color: var(--green); display: block; font-family: 'Space Grotesk'; font-size: 1.65rem; letter-spacing: -.04em; }
+    .readout-box span { color: #8cb49a; font-size: .74rem; }
+    .log { border-top: 1px solid #24553a; margin-top: 22px; padding-top: 16px; }
+    .log-title { color: #9eb5a8; font-family: 'Space Grotesk'; font-size: .78rem; text-transform: uppercase; }
+    .log-list { list-style: none; margin: 8px 0 0; padding: 0; }
+    .log-list li { color: #b8d3c0; display: grid; font-family: Consolas, monospace; font-size: .78rem; grid-template-columns: 1fr 1fr 1fr; padding: 5px 0; }
+    .log-list li + li { border-top: 1px solid #122d1e; }
+    .note { border-left: 3px solid var(--teal); color: var(--muted); font-size: .9rem; margin-top: 18px; padding-left: 15px; }
+    footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; margin-top: 62px; padding-top: 20px; }
+    :root { --amber: #e2a83b; --amber-dark: #96600b; }
+    .how-grid .card, .circuit-photo { transition: border-color .18s; }
+    .how-grid .card:hover, .circuit-photo:hover { border-color: var(--teal); }
+    .pin { border: 0; border-radius: 999px; flex-shrink: 0; }
+    .wire:nth-child(1) .pin { background: #e6effb; color: #235b9c; }
+    .wire:nth-child(2) .pin { background: #e5f3e9; color: #246b3d; }
+    .wire:nth-child(3) .pin { background: #fbf1dd; color: #885509; }
+    .wire:nth-child(4) .pin { background: #fbe8e7; color: #a33e39; }
+    .wire:nth-child(5) .pin { background: #eceff1; color: #505b63; }
+    .metric { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 16px 12px; }
+    .metric strong { color: var(--amber-dark); font-size: clamp(1.3rem, 4vw, 2rem); font-weight: 700; letter-spacing: -.04em; }
+    .metric svg { display: block; width: 26px; height: 26px; margin-bottom: 10px; fill: none; stroke: var(--teal); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .radar-section { overflow: visible; }
+    .radar-wrap { border-radius: 14px; }
+    .radar-controls { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin: 0 0 16px; }
+    button { background: var(--amber); border-color: var(--amber); color: #30220c; transition: transform .15s, box-shadow .15s, background .15s, border-color .15s; }
+    button:hover:not(:disabled) { background: #edb84f; border-color: #c28b27; transform: translateY(-2px); box-shadow: 0 3px 0 #17242b1a; }
+    button:active:not(:disabled) { transform: translateY(0); box-shadow: none; background: #d49a2d; }
+    button.secondary { background: transparent; border-color: var(--teal); color: var(--teal); }
+    button.secondary:hover:not(:disabled) { background: #e8f2f3; border-color: var(--teal-dark); }
+    button.tertiary { background: transparent; border-color: transparent; color: var(--teal); padding-inline: 8px; }
+    button.tertiary:hover:not(:disabled) { background: #edf4f4; border-color: transparent; }
+    button:disabled { cursor: not-allowed; }
+    :is(button, a):focus-visible { outline: 3px solid var(--teal); outline-offset: 4px; }
+    .circuit-link a:hover { color: var(--amber-dark); }
+    .circuit-link a:active { color: #714806; }
+    .status { border-radius: 999px; padding: 6px 10px; background: #edf1f3; color: #52616a; text-transform: none; }
+    .status-dot { background: #829099; flex-shrink: 0; }
+    .status[data-state="simulation"] { background: #e5f3e9; color: #246b3d; }
+    .status[data-state="simulation"] .status-dot { background: #289449; }
+    .status[data-state="serial"] { background: #e6effb; color: #235b9c; }
+    .status[data-state="serial"] .status-dot { background: #2678ce; }
+    .mode-picker { display: flex; align-items: center; gap: 10px; font-size: .8rem; flex-wrap: wrap; }
+    button.mode-switch { width: 46px; min-height: 26px; padding: 3px; border-radius: 999px; background: var(--amber); border-color: #c28b27; }
+    .mode-switch span { display: block; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform .18s; }
+    button.mode-switch[aria-checked="true"] { background: var(--teal); border-color: var(--teal); }
+    .mode-switch[aria-checked="true"] span { transform: translateX(18px); }
+    .control-message { width: 100%; margin: 0; color: var(--muted); font-size: .8rem; }
+    html { color-scheme: dark; }
+    [id] { scroll-margin-top: 92px; }
+    .code-card, .metric, .radar-controls { background: var(--card); }
+    pre { color: var(--ink); }
+    .kw { color: #c6a4e8; } .type { color: #efc981; } .num { color: #99d4ac; } .fn { color: #7cc6d4; } .comment { color: #d5b997; }
+    .circuit-photo img { background: var(--card); }
+    .wire:nth-child(1) .pin { background: #243c55; color: #9bc9fc; }
+    .wire:nth-child(2) .pin { background: #203e32; color: #98dab0; }
+    .wire:nth-child(3) .pin { background: #493b23; color: #f0c574; }
+    .wire:nth-child(4) .pin { background: #482e33; color: #f3aaa5; }
+    .wire:nth-child(5) .pin { background: #303c47; color: #c5ced6; }
+    .metric strong { color: var(--amber); }
+    .sweep-svg path { stroke: #344f5b; }
+    .sweep-svg text { fill: var(--muted); }
+    .eyebrow, .circuit-link a, button.secondary, button.tertiary { color: #69b5bf; }
+    .circuit-link a { text-decoration-color: var(--teal); }
+    .circuit-link a:hover { color: var(--amber); }
+    .circuit-link a:active { color: #f5cc7d; }
+    button.secondary:hover:not(:disabled), button.tertiary:hover:not(:disabled) { background: #213943; border-color: var(--teal); }
+    .status { background: #2b3742; color: #bdc6cf; }
+    .status[data-state="simulation"] { background: #203e32; color: #98dab0; }
+    .status[data-state="serial"] { background: #243c55; color: #9bc9fc; }
+    .topbar { position: sticky; top: 0; z-index: 100; background: var(--card); border-bottom: 1px solid var(--line); }
+    .nav-inner { width: min(100% - 32px, 780px); min-height: 70px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: relative; }
+    .brand { color: var(--ink); font: 700 1rem 'Space Grotesk', sans-serif; text-decoration: none; white-space: nowrap; }
+    .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; margin: 0; padding: 0; }
+    .nav-links a { display: block; padding: 9px 10px; border: 1px solid transparent; border-radius: 7px; color: var(--muted); text-decoration: none; font: 500 .8rem 'Space Grotesk', sans-serif; transition: background .15s, color .15s, border-color .15s; }
+    .nav-links a:hover, .brand:hover { color: var(--ink); }
+    .nav-links a:hover { background: #213943; border-color: var(--teal); }
+    .nav-links a[aria-current="location"] { background: #213943; border-color: var(--teal); color: #8ed0d8; }
+    .nav-links a:active, .brand:active { color: var(--amber); }
+    button.menu-toggle { display: none; background: transparent; border-color: var(--line); color: var(--ink); padding: 10px; }
+    .menu-toggle svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
+    @media (max-width: 700px) {
+      button.menu-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 100%; left: -16px; right: -16px; background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 16px; }
+      .nav-links.is-open { display: grid; gap: 6px; }
+      .nav-links a { padding: 12px; font-size: .9rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } button, .mode-switch span, .nav-links a { transition: none; } }
+    @media (min-width: 1600px) {
+      .page { width: min(100% - 128px, 1200px); }
+    }
+    @media (max-width: 1024px) {
+      .page { width: min(100% - 48px, 780px); }
+      .how-grid, .circuit-gallery { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .page { width: calc(100% - 32px); }
+      .page { padding-top: 34px; }
+      .how-grid { grid-template-columns: 1fr; }
+      .circuit-gallery { grid-template-columns: 1fr; }
+      .sweep-diagram { min-height: auto; padding-top: 12px; }
+      .radar-section { margin-left: 0; margin-right: 0; }
+      .radar-wrap { padding-left: 16px; padding-right: 16px; }
+      .radar-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+      .serial-label { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Navegación principal">
+    <div class="nav-inner">
+      <a class="brand" href="#inicio">Radar ultrasónico</a>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#como-funciona" aria-current="location">Cómo funciona</a></li>
+        <li><a href="#circuito">Circuito</a></li>
+        <li><a href="#codigo">Código</a></li>
+        <li><a href="#simulacion">Simulación</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main class="page">
+    <header id="inicio">
+      <div class="eyebrow">Arduino Uno + Tinkercad</div>
+      <h1>Radar ultrasónico</h1>
+      <p class="dek">Un sensor que convierte el movimiento de un servo y un eco invisible en una lectura visual del espacio.</p>
+    </header>
+
+    <section id="como-funciona" aria-labelledby="funciona-title">
+      <h2 id="funciona-title">Cómo funciona</h2>
+      <p class="section-intro">El HC-SR04 viaja montado sobre un servomotor para mirar todo el frente, mientras el Arduino registra cada medición y la envía al monitor serial.</p>
+      <div class="how-grid" id="circuito">
+        <article class="card">
+          <h3 id="circuito-title">Circuito y componentes</h3>
+          <p class="section-intro">La protoboard organiza la alimentación: el riel positivo lleva los 5V del Arduino y el riel negativo distribuye su GND.</p>
+          <div class="wiring">
+            <div class="wire"><span class="pin">TRIG · 10</span><span class="wire-line"></span><span>Disparo ultrasónico</span></div>
+            <div class="wire"><span class="pin">ECHO · 11</span><span class="wire-line"></span><span>HC-SR04 → pin digital 11</span></div>
+            <div class="wire"><span class="pin">SERVO · 12</span><span class="wire-line"></span><span>Señal del servo → pin digital 12</span></div>
+            <div class="wire"><span class="pin">VCC · 5V</span><span class="wire-line"></span><span>HC-SR04 y servo → riel positivo</span></div>
+            <div class="wire"><span class="pin">GND</span><span class="wire-line"></span><span>HC-SR04 y servo → riel negativo</span></div>
+          </div>
+          <div class="component-roles">
+            <div class="component-role"><strong>HC-SR04 · el ojo</strong><p>Emite un pulso ultrasónico y mide cuánto tarda en rebotar contra un objeto y volver. Ese tiempo permite calcular la distancia.</p></div>
+            <div class="component-role"><strong>Servomotor · el giro</strong><p>Tiene el sensor montado encima y lo rota de 0° a 180°, barriendo el frente como la antena de un radar real.</p></div>
+            <div class="component-role"><strong>Arduino Uno · el coordinador</strong><p>Mueve el servo paso a paso, dispara una medición en cada posición y envía el resultado por el puerto serial.</p></div>
+          </div>
+        </article>
+        <article class="card sweep-diagram">
+          <svg class="sweep-svg" viewBox="0 0 280 160" role="img" aria-label="Diagrama del barrido de 0 a 180 grados">
+            <path d="M25 140 A115 115 0 0 1 255 140" fill="none" stroke="#d4e7e9" stroke-width="2"/>
+            <path d="M53 140 A87 87 0 0 1 227 140" fill="none" stroke="#d4e7e9" stroke-width="2"/>
+            <path d="M81 140 A59 59 0 0 1 199 140" fill="none" stroke="#d4e7e9" stroke-width="2"/>
+            <line x1="140" y1="140" x2="42" y2="74" stroke="#0b6e7a" stroke-width="3"/>
+            <line x1="140" y1="140" x2="238" y2="74" stroke="#0b6e7a" stroke-width="3"/>
+            <circle cx="140" cy="140" r="8" fill="#0b6e7a"/>
+            <text x="17" y="156" fill="#61727b" font-size="12">0°</text><text x="132" y="156" fill="#61727b" font-size="12">90°</text><text x="238" y="156" fill="#61727b" font-size="12">180°</text>
+          </svg>
+          <p class="diagram-caption">El servo barre 2° cada 30 ms</p>
+        </article>
+        <div class="circuit-gallery" role="group" aria-labelledby="circuito-title">
+          <figure class="circuit-photo">
+            <img src="circuito-radar-general.jpeg" alt="Circuito de Tinkercad con Arduino Uno, protoboard, sensor HC-SR04 y servomotor conectados." loading="lazy">
+            <figcaption>Vista general del circuito: Arduino, protoboard, sensor ultrasónico y servomotor.</figcaption>
+          </figure>
+          <figure class="circuit-photo">
+            <img src="circuito-radar-detalle.jpeg" alt="Conexiones de alimentación y señales del sensor ultrasónico y el servomotor en Tinkercad." loading="lazy">
+            <figcaption>Detalle de las conexiones del sensor y el servomotor.</figcaption>
+          </figure>
+        </div>
+        <p class="circuit-link"><a href="https://www.tinkercad.com/things/8VbJOrTiwK1-radar/editel?returnTo=https%3A%2F%2Fwww.tinkercad.com%2Fdashboard%2Fdesigns%2Fall&amp;sharecode=FDf32z1QmfXa81sWD6TZmWtiKAFYyxKbJqn0TDUgxgo" target="_blank" rel="noopener noreferrer">Ver el circuito en Tinkercad ↗</a></p>
+      </div>
+      <div class="metrics">
+        <div class="metric"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19a9 9 0 0 1 18 0H3Zm9 0 5-7M12 7V5"/></svg><strong>0–180°</strong><span>Ángulo de barrido</span></div>
+        <div class="metric"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="8"/><path d="M12 14V9m-3-7h6m-3 0v4m6 1 2-2"/></svg><strong>25 ms</strong><span>Timeout del eco</span></div>
+        <div class="metric"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h17l-4-4m5 12H4l4 4M5 5v6m14 2v6"/></svg><strong>9600</strong><span>Baudios seriales</span></div>
+      </div>
+      <p class="note">El servo avanza de a 2° desde 0° hasta 180° y regresa; espera 30 ms antes de medir en cada paso. El Arduino mide el tiempo de respuesta con <code>pulseIn</code> y lo convierte a centímetros con la fórmula <strong>duración × 0.0343 ÷ 2</strong>. Si no llega ningún eco en 25 ms, reporta <code>-1</code>.</p>
+    </section>
+
+    <section id="codigo" aria-labelledby="codigo-title">
+      <h2 id="codigo-title">El código</h2>
+      <p class="section-intro">Este es el código del circuito armado y simulado en Tinkercad. La simulación web reproduce su barrido y genera registros con el mismo formato: ángulo,distancia. Por ejemplo, 94,37. o 94,-1. si no hay eco.</p>
+      <div class="card code-card">
+        <div class="code-top"><span>radar_ultrasonico.ino</span><span>Arduino C++</span></div>
+        <pre><code><span class="kw">#include</span> &lt;Servo.h&gt;
+
+<span class="kw">const int</span> trigPin  = <span class="num">10</span>;
+<span class="kw">const int</span> echoPin  = <span class="num">11</span>;
+<span class="kw">const int</span> servoPin = <span class="num">12</span>;
+
+<span class="kw">const int</span> anguloMin = <span class="num">0</span>;
+<span class="kw">const int</span> anguloMax = <span class="num">180</span>;
+<span class="kw">const int</span> pasoAngulo = <span class="num">2</span>;
+<span class="kw">const int</span> retardoServo = <span class="num">30</span>;
+<span class="kw">const unsigned long</span> timeoutEcho = <span class="num">25000</span>;
+
+<span class="type">Servo</span> miServo;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  Serial.begin(<span class="num">9600</span>);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  miServo.attach(servoPin);
+  miServo.write(anguloMin);
+  delay(<span class="num">500</span>);
+}
+
+<span class="type">long</span> <span class="fn">medirDistanciaCM</span>() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(<span class="num">2</span>);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(<span class="num">10</span>);
+  digitalWrite(trigPin, LOW);
+  <span class="type">long</span> duracion = pulseIn(echoPin, HIGH, timeoutEcho);
+  <span class="kw">if</span> (duracion == <span class="num">0</span>) <span class="kw">return</span> -<span class="num">1</span>;
+  <span class="kw">return</span> duracion * <span class="num">0.0343</span> / <span class="num">2</span>;
+}
+
+<span class="kw">void</span> <span class="fn">barrer</span>(<span class="type">int</span> desde, <span class="type">int</span> hasta, <span class="type">int</span> paso) {
+  <span class="kw">for</span> (<span class="type">int</span> angulo = desde; angulo != hasta; angulo += paso) {
+    miServo.write(angulo);
+    delay(retardoServo);
+    <span class="type">long</span> distancia = medirDistanciaCM();
+    Serial.print(angulo);
+    Serial.print(<span class="comment">","</span>);
+    Serial.print(distancia);
+    Serial.println(<span class="comment">"."</span>);
+  }
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  barrer(anguloMin, anguloMax + pasoAngulo, pasoAngulo);
+  barrer(anguloMax, anguloMin - pasoAngulo, -pasoAngulo);
+}</code></pre>
+      </div>
+    </section>
+
+    <section id="simulacion" class="radar-section" aria-labelledby="simulacion-title">
+      <div class="radar-controls" role="group" aria-label="Controles del radar">
+        <button id="simulate-button" type="button">Detener simulación</button>
+        <button id="connect-button" class="secondary" type="button">Conectar Arduino real</button>
+        <button id="objects-button" class="tertiary" type="button">Limpiar objetos</button>
+        <div class="mode-picker"><span>Simular</span><button id="mode-switch" class="mode-switch" type="button" role="switch" aria-checked="false" aria-label="Modo Arduino real"><span></span></button><span>Arduino real</span></div>
+        <div class="status" id="status-pill" data-state="simulation" role="status"><span class="status-dot"></span><span id="mode-status">Simulando</span></div>
+        <p class="control-message" id="control-message" role="status">Coloca objetos en el radar para comenzar a detectarlos.</p>
+      </div>
+      <div class="radar-wrap">
+        <div class="radar-heading">
+          <h2 id="simulacion-title">Simulación del radar</h2>
+        </div>
+        <p style="color: #b8d3c0; font-size: .88rem" id="placement-help">Haz clic o toca dentro del semicírculo para colocar un objeto; tócalo otra vez para quitarlo. Los cuadrados indican tus objetos y los puntos turquesa aparecen cuando el barrido los detecta. Puedes editar incluso en pausa.</p>
+        <div class="canvas-box"><canvas id="radar-canvas" width="760" height="430" role="img" aria-label="Radar de 180 grados con barrido y detecciones simuladas; lecturas disponibles debajo"></canvas></div>
+        <p class="serial-label" id="serial-label">Datos simulados · 30 ms</p>
+        <p class="serial-label" id="objects-status" role="status">0 objetos · Toca el radar para empezar</p>
+        <p class="serial-label">Último registro: <code id="sample-readout">0,-1.</code></p>
+        <div class="readout">
+          <div class="readout-box"><strong id="angle-readout">0°</strong><span>Último ángulo</span></div>
+          <div class="readout-box"><strong id="distance-readout">-- cm</strong><span>Última distancia</span></div>
+        </div>
+        <div class="log">
+          <div class="log-title">Últimas detecciones</div>
+          <ul class="log-list" id="log-list"><li><span>Esperando datos</span><span>--</span><span>--:--:--</span></li></ul>
+        </div>
+      </div>
+    </section>
+    <footer>Proyecto de exploración espacial de escritorio · Arduino + Tinkercad</footer>
+  </main>
+
+  <script>
+    (() => {
+      const toggle = document.getElementById('menu-toggle');
+      const menu = document.getElementById('nav-links');
+      const links = [...menu.querySelectorAll('a')];
+      const targets = links.map(link => document.querySelector(link.getAttribute('href')));
+      function setMenu(open) {
+        menu.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      }
+      toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'));
+      links.forEach(link => link.addEventListener('click', () => {
+        setMenu(false);
+        // Mantener el foco en el destino al cerrar el menú móvil.
+        const target = document.querySelector(link.getAttribute('href'));
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+      }));
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+          setMenu(false); toggle.focus();
+        }
+      });
+      document.addEventListener('click', event => {
+        if (!event.target.closest('.topbar')) setMenu(false);
+      });
+      window.matchMedia('(max-width: 700px)').addEventListener('change', () => setMenu(false));
+
+      function updateActiveLink() {
+        const boundary = document.querySelector('.topbar').getBoundingClientRect().height + 28;
+        let active = targets[0];
+        targets.forEach(target => {
+          if (target.getBoundingClientRect().top <= boundary) active = target;
+        });
+        if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) active = targets[targets.length - 1];
+        links.forEach((link, index) => {
+          if (targets[index] === active) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        });
+      }
+      const observer = new IntersectionObserver(updateActiveLink, {
+        rootMargin: '-70px 0px -55% 0px', threshold: [0, 0.1, 0.5, 1]
+      });
+      targets.forEach(target => observer.observe(target));
+      // Actualizar también dentro de secciones más altas que la ventana.
+      let scheduled = false;
+      window.addEventListener('scroll', () => {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(() => { updateActiveLink(); scheduled = false; });
+      }, { passive: true });
+      window.addEventListener('resize', updateActiveLink);
+      updateActiveLink();
+    })();
+
+    (() => {
+      const canvas = document.getElementById('radar-canvas');
+      const ctx = canvas.getContext('2d');
+      const button = document.getElementById('simulate-button');
+      const status = document.getElementById('mode-status');
+      const angleReadout = document.getElementById('angle-readout');
+      const distanceReadout = document.getElementById('distance-readout');
+      const sampleReadout = document.getElementById('sample-readout');
+      const logList = document.getElementById('log-list');
+      const stepDuration = 30;
+      let running = true;
+      let lastFrame = null;
+      let accumulator = 0;
+      let simulationTime = 0;
+      let step = 0;
+      let angle = 0;
+      let sweepDirection = 1;
+      let detections = [];
+      let objects = [];
+      let hasLog = false;
+      let mode = 'simulation';
+      let port = null;
+      let reader = null;
+      let readTask = null;
+      let busy = false;
+      const connectButton = document.getElementById('connect-button');
+      const modeSwitch = document.getElementById('mode-switch');
+      const message = document.getElementById('control-message');
+      const placementHelp = document.getElementById('placement-help');
+      const simulationHelp = placementHelp.textContent;
+
+      function updateControls() {
+        button.textContent = running ? 'Detener simulación' : 'Simular';
+        button.disabled = busy || mode === 'serial';
+        connectButton.disabled = busy;
+        modeSwitch.disabled = busy;
+        connectButton.textContent = port ? 'Desconectar Arduino' : 'Conectar Arduino real';
+        modeSwitch.setAttribute('aria-checked', String(mode === 'serial'));
+        document.getElementById('objects-button').disabled = mode === 'serial' || busy;
+        const state = port ? 'serial' : running ? 'simulation' : 'stopped';
+        document.getElementById('status-pill').dataset.state = state;
+        status.textContent = port ? 'Arduino conectado' : running ? 'Simulando' : 'Detenido';
+        document.getElementById('serial-label').textContent = mode === 'serial' ? 'Arduino real · 9600 baudios' : 'Datos simulados · 30 ms';
+        placementHelp.textContent = mode === 'serial' ? 'El radar muestra las mediciones del Arduino conectado. El ángulo del barrido lo determina el sensor; la colocación de objetos está disponible en modo Simular.' : simulationHelp;
+        canvas.style.cursor = mode === 'serial' ? 'default' : 'crosshair';
+        document.getElementById('objects-status').hidden = mode === 'serial';
+      }
+
+      function clearReadings() {
+        detections = []; hasLog = false; accumulator = 0; lastFrame = null;
+        angleReadout.textContent = '—'; distanceReadout.textContent = 'Esperando'; sampleReadout.textContent = '—';
+        logList.replaceChildren();
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 760, 430); render(0);
+      }
+
+      async function disconnect() {
+        if (reader) await reader.cancel().catch(() => {});
+        if (readTask) await readTask;
+      }
+
+      async function readSerial(activePort) {
+        const decoder = new TextDecoder();
+        let buffer = '';
+        try {
+          reader = activePort.readable.getReader();
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            if (buffer.length > 128) buffer = '';
+            lines.forEach(line => parseSample(line.replace(/\r$/, '')));
+          }
+        } catch (error) {
+          message.textContent = 'Se interrumpió la conexión con Arduino. Puedes volver a conectarlo.';
+        } finally {
+          reader?.releaseLock(); reader = null;
+          await activePort.close().catch(() => {});
+          port = null;
+          updateControls();
+        }
+      }
+
+      connectButton.addEventListener('click', async () => {
+        if (busy) return;
+        if (!('serial' in navigator) || !window.isSecureContext) {
+          message.textContent = 'Web Serial requiere Chrome o Edge y un contexto seguro (HTTPS o localhost). Puedes seguir usando Simular.';
+          return;
+        }
+        busy = true; updateControls();
+        try {
+          if (port) {
+            await disconnect();
+            message.textContent = 'Arduino desconectado.';
+          } else {
+            const selected = await navigator.serial.requestPort();
+            await selected.open({ baudRate: 9600 });
+            port = selected; mode = 'serial'; running = false;
+            clearReadings();
+            message.textContent = 'Conectado. Esperando registros de Arduino: ángulo,distancia.';
+            readTask = readSerial(selected);
+          }
+        } catch (error) {
+          message.textContent = error.name === 'NotFoundError' ? 'Selección cancelada. Puedes volver a intentarlo.' : 'No se pudo abrir el puerto. Revisa la conexión y cierra otros monitores seriales.';
+        } finally { busy = false; updateControls(); }
+      });
+
+      modeSwitch.addEventListener('click', async () => {
+        if (busy) return;
+        busy = true; updateControls();
+        if (mode === 'serial') {
+          await disconnect(); mode = 'simulation'; running = false;
+          message.textContent = 'Modo Simular listo. Pulsa Simular para iniciar el barrido.';
+        } else {
+          mode = 'serial'; running = false;
+          message.textContent = 'Pulsa Conectar Arduino real para seleccionar el puerto.';
+        }
+        clearReadings(); busy = false; updateControls();
+      });
+
+      function newObjects() {
+        objects = [];
+        document.getElementById('objects-status').textContent = '0 objetos · Toca el radar para empezar';
+        detections = [];
+        hasLog = false;
+        logList.innerHTML = '<li><span>Esperando barrido</span><span>—</span><span>—</span></li>';
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function pointAt(targetAngle, distance) {
+        const radians = Math.PI - targetAngle * Math.PI / 180;
+        const radius = 352 * distance / 400;
+        return { x: 380 + Math.cos(radians) * radius, y: 405 - Math.sin(radians) * radius };
+      }
+
+      function parseSample(record) {
+        const match = /^(\d+),(-?\d+)\.$/.exec(record);
+        if (!match) return;
+        const sampleAngle = Number(match[1]);
+        const distance = Number(match[2]);
+        if (!Number.isSafeInteger(sampleAngle) || !Number.isSafeInteger(distance) || sampleAngle > 180 || distance < -1) return;
+        if (sampleAngle !== angle) sweepDirection = sampleAngle > angle ? 1 : -1;
+        angle = sampleAngle;
+        sampleReadout.textContent = record;
+        angleReadout.textContent = angle + '°';
+        distanceReadout.textContent = distance === -1 ? 'Sin eco' : distance + ' cm';
+        if (distance === -1) return;
+        if (distance <= 400) detections.push({ angle, distance, time: simulationTime });
+        if (!hasLog) { logList.replaceChildren(); hasLog = true; }
+        const item = document.createElement('li');
+        const time = new Date().toLocaleTimeString('es-ES');
+        [angle + '°', distance + ' cm', time].forEach(text => {
+          const cell = document.createElement('span');
+          cell.textContent = text;
+          item.append(cell);
+        });
+        logList.prepend(item);
+        while (logList.children.length > 7) logList.lastElementChild.remove();
+      }
+
+      function sample() {
+        // 0, 2, …, 180, 180, 178, …, 0: ambos extremos se repiten como en el sketch.
+        const phase = step % 182;
+        const sampleAngle = phase <= 90 ? phase * 2 : (181 - phase) * 2;
+        const object = objects.filter(object => Math.abs(object.angle - sampleAngle) <= 4)
+          .reduce((nearest, object) => !nearest || object.distance < nearest.distance ? object : nearest, null);
+        const distance = object ? object.distance : -1;
+        parseSample(`${sampleAngle},${distance}.`);
+        step++;
+      }
+
+      function render(elapsed) {
+        const cx = 380, cy = 405;
+        const teal = '#5bbfc5', amber = '#e2b765';
+        ctx.fillStyle = '#061b23';
+        ctx.fillRect(0, 0, 760, 430);
+        function arc(distance, start = 0, end = 180) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, 352 * distance / 400,
+            Math.PI + start * Math.PI / 180, Math.PI + end * Math.PI / 180);
+          ctx.stroke();
+        }
+        function radial(value, from, to) {
+          const a = pointAt(value, from), b = pointAt(value, to);
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+        // All instrument ornamentation is clipped to the upper half-disc.
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, 352, Math.PI, 2 * Math.PI); ctx.closePath(); ctx.clip();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#24535c';
+        [40, 65, 95, 108, 180, 190, 204, 260, 300, 340, 375, 400].forEach(d => arc(d));
+        ctx.strokeStyle = '#387b82';
+        [100, 200, 300, 400].forEach(d => arc(d));
+        for (let value = 0; value <= 180; value += 2) {
+          ctx.strokeStyle = value % 10 === 0 ? '#56a5aa' : '#2d646e';
+          radial(value, 210, value % 10 === 0 ? 388 : 330);
+        }
+        for (let value = 0; value <= 180; value += 15) {
+          ctx.strokeStyle = '#24535c'; radial(value, 42, 400);
+        }
+        ctx.strokeStyle = amber;
+        ctx.globalAlpha = .7;
+        arc(265); arc(185); arc(118, 8, 78); arc(118, 90, 168);
+        ctx.lineWidth = 3;
+        arc(105, 12, 82); arc(105, 96, 154);
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([1, 7]); ctx.strokeStyle = teal; arc(160); arc(172);
+        ctx.setLineDash([]);
+        // A translucent fan follows the measured angle in either direction.
+        for (let offset = 42; offset >= 0; offset -= 1) {
+          const value = angle - sweepDirection * offset;
+          if (value < 0 || value > 180) continue;
+          const a = pointAt(Math.max(0, value - .6), 400);
+          const b = pointAt(Math.min(180, value + .6), 400);
+          ctx.fillStyle = `rgba(40, 199, 207, ${.035 + .3 * (1 - offset / 42)})`;
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.closePath(); ctx.fill();
+        }
+        (mode === 'simulation' ? objects : []).forEach(object => {
+          const p = pointAt(object.angle, object.distance);
+          ctx.strokeStyle = '#b5dde0'; ctx.lineWidth = 1.5;
+          ctx.strokeRect(p.x - 6, p.y - 6, 12, 12);
+        });
+        detections = detections.filter(d => simulationTime - d.time < 3500);
+        detections.forEach(d => {
+          const age = simulationTime - d.time;
+          const p = pointAt(d.angle, d.distance);
+          ctx.fillStyle = `rgba(137, 244, 228, ${1 - age / 3500})`;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+          if (age < 650) {
+            ctx.strokeStyle = `rgba(226, 183, 101, ${1 - age / 650})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 5 + age / 40, 0, Math.PI * 2); ctx.stroke();
+          }
+        });
+        ctx.strokeStyle = amber; ctx.lineWidth = 2; radial(angle, 0, 400);
+        ctx.restore();
+        ctx.strokeStyle = '#387b82'; ctx.lineWidth = 1;
+        radial(0, 0, 400); radial(180, 0, 400);
+        ctx.fillStyle = amber;
+        ctx.beginPath(); ctx.arc(cx, cy, 4, Math.PI, 2 * Math.PI); ctx.fill();
+        [100, 200, 300, 400].forEach(distance => {
+          const p = pointAt(30, distance);
+          ctx.font = '13px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
+          ctx.fillStyle = '#061b23'; ctx.fillRect(p.x - 28, p.y - 16, 56, 16);
+          ctx.fillStyle = '#a6c9cf'; ctx.fillText(distance + ' cm', p.x, p.y - 4);
+        });
+        [0, 90, 180].forEach(value => {
+          const p = pointAt(value, 400);
+          ctx.fillStyle = amber; ctx.font = '16px Space Grotesk, sans-serif';
+          ctx.fillText(value + '\u00b0', p.x, p.y + (value === 90 ? -14 : 20));
+        });
+      }
+
+      function frame(now) {
+        const elapsed = lastFrame === null ? 0 : now - lastFrame;
+        lastFrame = now;
+        if (mode === 'serial' && port && !document.hidden) {
+          simulationTime += elapsed;
+          render(elapsed);
+        } else if (running && mode === 'simulation' && !document.hidden) {
+          accumulator += elapsed;
+          while (accumulator >= stepDuration) {
+            simulationTime += stepDuration;
+            sample();
+            accumulator -= stepDuration;
+          }
+          render(elapsed);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      canvas.style.cursor = 'crosshair';
+      canvas.setAttribute('aria-describedby', 'placement-help');
+      canvas.addEventListener('click', event => {
+        if (mode !== 'simulation' || busy) return;
+        const bounds = canvas.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) * canvas.width / bounds.width;
+        const y = (event.clientY - bounds.top) * canvas.height / bounds.height;
+        const radius = Math.hypot(x - 380, 405 - y);
+        if (y > 405 || radius > 352) return;
+        const hitRadius = 14 * canvas.width / bounds.width;
+        const index = objects.findIndex(object => {
+          const p = pointAt(object.angle, object.distance);
+          return Math.hypot(x - p.x, y - p.y) <= hitRadius;
+        });
+        if (index >= 0) objects.splice(index, 1);
+        else objects.push({
+          angle: 180 - Math.atan2(405 - y, x - 380) * 180 / Math.PI,
+          distance: Math.round(radius / 352 * 400)
+        });
+        detections = [];
+        document.getElementById('objects-status').textContent = `${objects.length} ${objects.length === 1 ? 'objeto colocado' : 'objetos colocados'} · Alcance: 400 cm`;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        render(0);
+      });
+
+      button.addEventListener('click', () => {
+        if (mode !== 'simulation' || busy) return;
+        running = !running;
+        lastFrame = null;
+        message.textContent = running ? 'Barrido activo: 2° cada 30 ms.' : 'Simulación detenida. Puedes seguir colocando objetos.';
+        updateControls();
+      });
+      document.getElementById('objects-button').addEventListener('click', () => {
+        newObjects();
+        step = 0; angle = 0; accumulator = 0;
+        angleReadout.textContent = '0°';
+        distanceReadout.textContent = 'Esperando';
+        sampleReadout.textContent = '—';
+        render(0);
+      });
+      document.addEventListener('visibilitychange', () => { lastFrame = null; });
+      newObjects();
+      updateControls();
+      render(0);
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
